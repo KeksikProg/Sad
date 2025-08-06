@@ -1,0 +1,14 @@
+langchain_google_genai
+langchain
+langchain_core
+langchain_community
+dotenv
+langchainhub
+langchain-chroma
+beautifulsoup4
+langgraph
+numpy
+scikit-learn
+langserve
+fastapi
+requests
