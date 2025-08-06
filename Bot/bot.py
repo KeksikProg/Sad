@@ -3,9 +3,10 @@ from aiogram.types import Message
 import aiohttp
 import asyncio
 from dotenv import load_dotenv
+import os
 load_dotenv()
 
-BOT_TOKEN = "7904362423:AAEvEzow0xKlJFJjQQJm3GecHdrPHmE8Wbw"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 router = Router()
