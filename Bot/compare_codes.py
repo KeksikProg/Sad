@@ -1,7 +1,7 @@
 import pickle
 import numpy as np
 
-with open("dataFRIDA.pkl", "rb") as f:
+with open("full_dataFRIDA.pkl", "rb") as f:
     profile_data = pickle.load(f)
 
 def cosine_sim(vec1, vec2):
@@ -31,7 +31,7 @@ def compare_codes(codes: list[str]) -> str:
             if sim <= 0.93:
                 sim_matrix[pair] = "Очень сильно отличаются"
             elif sim > 0.93 and sim <= 0.95:
-                sim_matrix[pair] = "Отличаются уклоном обучения, но схожесть есть"
+                sim_matrix[pair] = "Отличаются"
             elif sim > 0.95 and sim <= 0.99:
                 sim_matrix[pair] = "Похожи, но с разными акцентами"
             elif sim > 0.99:
