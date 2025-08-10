@@ -1,48 +1,69 @@
-import pickle
+from typing import Dict, List
+from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import pickle
 
-with open("full_dataFRIDA.pkl", "rb") as f:
+with open("ABS_FULL.pkl", "rb") as f:
     profile_data = pickle.load(f)
 
-def cosine_sim(vec1, vec2):
-        return float(np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2)))
+def cosine_sim(a, b):
+    return cosine_similarity([a], [b])[0][0]
 
-def compare_codes(codes: list[str]) -> str:
-    results = {}
+def compare_codes(codes: List[str]) -> Dict:
+    """
+    Сравнивает несколько направлений по кодам.
+    Возвращает embeddings-схожесть, TF-IDF, темы и краткие описания (summary).
+    """
+    results = {
+        "codes": codes,
+        "tfidf": {},
+        "topics": {},
+        "summaries": {},  # ← Новое поле
+        "similarities": {}
+    }
 
+    # Список для embeddings (в порядке codes)
+    valid_codes = []
     embeddings = []
-    tfidf_data = {}
-    topic_data = {}
 
     for code in codes:
         item = profile_data.get(code)
         if not item:
-            continue
+            continue  # Пропускаем несуществующие коды
 
-        tfidf_data[code] = item["tfidf"]
-        topic_data[code] = item["topics"]
-        embeddings.append(item["embedding"])
+        # Собираем данные
+        results["tfidf"][code] = item["tfidf"]
+        results["topics"][code] = item["topics"]
+        results["summaries"][code] = item.get("summary", "").strip() or "Описание отсутствует."  # если пусто — подсказка
 
+        # Только если есть embedding, добавляем в сравнение
+        if "embedding" in item and item["embedding"] is not None:
+            embeddings.append(item["embedding"])
+            valid_codes.append(code)
+        else:
+            # Если нет embedding, считаем, что не можем сравнивать
+            results["similarities"][f"{code} vs ?"] = "Нет данных для сравнения (embedding)"
+
+    # Сравнение по cosine similarity между embedding
     sim_matrix = {}
-    for i in range(len(codes)):
-        for j in range(i + 1, len(codes)):
+    for i in range(len(valid_codes)):
+        for j in range(i + 1, len(valid_codes)):
+            code1, code2 = valid_codes[i], valid_codes[j]
             sim = cosine_sim(embeddings[i], embeddings[j])
-            pair = f"{codes[i]} vs {codes[j]}"
+
+            pair = f"{code1} vs {code2}"
             if sim <= 0.93:
                 sim_matrix[pair] = "Очень сильно отличаются"
-            elif sim > 0.93 and sim <= 0.95:
+            elif sim <= 0.95:
                 sim_matrix[pair] = "Отличаются"
-            elif sim > 0.95 and sim <= 0.99:
+            elif sim <= 0.99:
                 sim_matrix[pair] = "Похожи, но с разными акцентами"
-            elif sim > 0.99:
+            else:  # sim > 0.99
                 sim_matrix[pair] = "Идентичны"
 
-    results["tfidf"] = tfidf_data
-    results["topics"] = topic_data
-    results["similarities"] = sim_matrix
-    results["codes"] = codes
+    results["similarities"].update(sim_matrix)
 
     return results
 
 #if __name__ == "__main__":
-#    print(compare_codes(["15.03.01", "09.03.02", "09.03.01"])["tfidf"])
+#    print(compare_codes(["15.03.01", "09.03.02", "09.03.01"])["summaries"])

@@ -4,18 +4,27 @@ import aiohttp
 import asyncio
 from dotenv import load_dotenv
 import os
+from aiogram.filters import CommandStart
 
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+API_URL = os.getenv("API_URL")
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 router = Router()
 dp.include_router(router)
 
+@router.message(CommandStart())
+async def on_start(message: Message):
+    await message.answer(
+        "Привет! Я помогу сравнить направления/профили/УГС.\n"
+        "Например: «Сравни 09.03.01 и 09.03.02». "
+        "Важно: сравнивать можно только объекты одного уровня."
+    )
+
 # Храним статусы пользователей: True — бот занят, False — свободен
 user_busy = {}
-
 @router.message()
 async def handle_message(message: Message):
     user_id = str(message.from_user.id)
