@@ -15,11 +15,18 @@ from fastapi import HTTPException
 from compare_codes import compare_codes
 from prompts import prompt_codes
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_ollama import ChatOllama
+import os
+
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama2:latest")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", "0.7"))
 
 #---LLM, AGENTS, TOOLS---
 load_dotenv()
 app = FastAPI()
-llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=1)
+#llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=1)
+llm = ChatOllama(model=OLLAMA_MODEL, base_url=OLLAMA_BASE_URL, temperature=LLM_TEMPERATURE)
 tools = []
 check = CappingMemorySaver()
 agent = create_react_agent(model=llm, tools=tools, checkpointer=check)
